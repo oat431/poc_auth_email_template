@@ -26,6 +26,7 @@ import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import panomete.poc.resemail.security.repository.AuthRepository;
 import panomete.poc.resemail.security.service.SecurityEntryPoint;
 import panomete.poc.resemail.security.service.SecurityFilterService;
 
@@ -39,6 +40,7 @@ public class SecurityConfig {
 
     private final SecurityEntryPoint securityEntryPoint;
     private final SecurityFilterService securityFilter;
+    private final AuthRepository authRepository;
     private final LogoutHandler logoutHandler;
     private final List<String> allowedOrigins = List.of(
             "http://localhost:3300",
@@ -71,14 +73,13 @@ public class SecurityConfig {
                         .requestMatchers(FREE_AREA).permitAll()
                         .anyRequest().authenticated()
                 );
-//        http.authenticationProvider(authenticationProvider());
+        http.authenticationProvider(authenticationProvider());
         http.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
         http.logout(
                 logout ->
                         logout.logoutUrl("/api/v1/auth/sign-out")
                                 .addLogoutHandler(logoutHandler)
                                 .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext())
-
         );
         return http.build();
     }
@@ -105,19 +106,18 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        return authRepository::findByUsername;
-//        return null;
-//    }
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return authRepository::findByUsername;
+    }
 
-//    @Bean
-//    public AuthenticationProvider authenticationProvider() {
-//        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-//        authProvider.setUserDetailsService(userDetailsService());
-//        authProvider.setPasswordEncoder(passwordEncoder());
-//        return authProvider;
-//    }
+    @Bean
+    public AuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(userDetailsService());
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
