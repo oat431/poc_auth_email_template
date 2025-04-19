@@ -5,6 +5,7 @@ import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 import panomete.poc.resemail.common.entity.BaseEntity;
 import panomete.poc.resemail.role.entity.Role;
 import panomete.poc.resemail.token.entity.RefreshToken;
@@ -33,29 +34,34 @@ public class Auth extends BaseEntity implements UserDetails {
     private String email;
 
     @Column(name = "is_active")
-    private boolean enabled;
+    @Builder.Default
+    private Boolean enabled = true;
 
     @Column(name = "is_verified", nullable = false)
-    private boolean verified;   // <-- primitive + renamed
+    @Builder.Default
+    private Boolean verified = false;
 
     @OneToOne(mappedBy = "auth")
     @ToString.Exclude
     private User user;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "tb_auth_role",
+    @JoinTable(name = "tb_auth_roles",
             joinColumns        = @JoinColumn(name = "auth_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     @ToString.Exclude
+    @Builder.Default
     private List<Role> roles = new ArrayList<>();
 
     @OneToMany(mappedBy = "auth", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
+    @Builder.Default
     private List<RefreshToken> refreshTokens = new ArrayList<>();;
 
 
 
     @Override
+    @Transactional
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.roles.stream().map(
                 role -> new SimpleGrantedAuthority(

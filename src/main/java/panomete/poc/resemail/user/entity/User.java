@@ -15,6 +15,7 @@ import panomete.poc.resemail.security.entity.Auth;
 @SuperBuilder
 @Table(name = "tb_user")
 public class User extends BaseEntity {
+    public User() {}
     public User(Auth auth) {}
 
     @Column(nullable = false)

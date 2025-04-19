@@ -37,12 +37,12 @@ public class ApplicationConfig implements ApplicationListener<ApplicationReadyEv
         if(roleRepository.count() == 0) {
             log.info("Adding role");
             roleRepository.save(Role.builder()
-                    .name("ADMIN")
+                    .name("ROLE_ADMIN")
                     .description("Admin can do everything")
                     .build()
             );
             roleRepository.save(Role.builder()
-                    .name("USER")
+                    .name("ROLE_USER")
                     .description("User can do many things")
                     .build()
             );
@@ -51,7 +51,7 @@ public class ApplicationConfig implements ApplicationListener<ApplicationReadyEv
 
     protected void addInitUserIfEmpty() {
         if(userRepository.count() == 0) {
-            Role admin = roleRepository.findByName("ADMIN");
+            Role admin = roleRepository.findByName("ROLE_ADMIN");
             Auth adminAuth = Auth.builder()
                     .username("admin")
                     .password(passwordEncoder.encode("admin"))
@@ -68,7 +68,7 @@ public class ApplicationConfig implements ApplicationListener<ApplicationReadyEv
             userRepository.save(adminAcc);
 
             log.info("Adding User");
-            Role user = roleRepository.findByName("USER");
+            Role user = roleRepository.findByName("ROLE_USER");
 
             Auth userAuth = Auth.builder()
                     .username("user")

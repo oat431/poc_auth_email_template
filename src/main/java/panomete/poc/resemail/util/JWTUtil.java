@@ -2,17 +2,21 @@ package panomete.poc.resemail.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import panomete.poc.resemail.security.entity.Auth;
 
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.SecretKey;
 import java.io.Serializable;
-import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 public class JWTUtil implements Serializable {
     static final String CLAIM_KEY_USERNAME = "sub";
@@ -32,17 +36,23 @@ public class JWTUtil implements Serializable {
     @Value("${jwt.refresh.expiration}")
     private Long REFRESH_EXPIRATION;
 
-//    public String generateAccessToken(Auth user) {
-//        List<String> roles = user.getSimpleAuthorities();
-//        String role = roles.getFirst();
-//        boolean isAdmin = role.equals("ROLE_ADMIN") || role.equals("ROLE_SUPER_ADMIN");
-//        Map<String, Object> claims = new HashMap<>();
-//        claims.put(CLAIM_KEY_ID, user.getId().toString());
-//        claims.put(CLAIM_KEY_USERNAME, user.getUsername());
-//        claims.put(CLAIM_KEY_ROLE, simplifyRole(roles));
-//        claims.put(CLAIM_KEY_CREATED, new Date());
-//        return generateToken(claims, isAdmin ? ADMIN_EXPIRATION : USER_EXPIRATION);
-//    }
+    private SecretKey getSecretKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(SECRET);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+
+    public String generateAccessToken(Auth user) {
+            List<String> roles = user.getSimpleAuthorities();
+            String role = roles.getFirst();
+            boolean isAdmin = role.equals("ROLE_ADMIN") || role.equals("ROLE_USER");
+            Map<String, Object> claims = new HashMap<>();
+            claims.put(CLAIM_KEY_ID, user.getId().toString());
+            claims.put(CLAIM_KEY_USERNAME, user.getUsername());
+            claims.put(CLAIM_KEY_ROLE, simplifyRole(roles));
+            claims.put(CLAIM_KEY_CREATED, new Date());
+            return generateToken(claims, isAdmin ? ADMIN_EXPIRATION : USER_EXPIRATION);
+    }
 
 //    public String generateRefreshToken(String token, Auth user) {
 //        Claims claims = getClaimsFromToken(token);
@@ -69,22 +79,21 @@ public class JWTUtil implements Serializable {
         return role.getFirst().substring(5);
     }
 
-    public String generateToken(Map<String, Object> claims, Long expiration) {
-        final Key key = new SecretKeySpec(SECRET.getBytes(), SignatureAlgorithm.HS512.getJcaName());
+    public String generateToken(Map<String, Object> claims, Long expirationInMs) {
         return Jwts.builder()
-                .setClaims(claims)
-                .signWith(key, SignatureAlgorithm.HS512)
-                .setExpiration(generateExpirationDate(expiration))
+                .claims(claims)
+                .issuedAt(new Date())
+                .expiration(generateExpirationDate(expirationInMs))
+                .signWith(getSecretKey())
                 .compact();
     }
 
     public Claims getClaimsFromToken(String token) {
-        final Key key = new SecretKeySpec(SECRET.getBytes(), SignatureAlgorithm.HS512.getJcaName());
         return Jwts.parser()
-                .setSigningKey(key)
+                .verifyWith(getSecretKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     public Date generateExpirationDate(Long expiration) {
@@ -99,26 +108,26 @@ public class JWTUtil implements Serializable {
         return getClaimsFromToken(token).getExpiration();
     }
 
-    public Date getCreatedDateFromToken(String token) {
-        return new Date((Long) getClaimsFromToken(token).get(CLAIM_KEY_CREATED));
-    }
+//    public Date getCreatedDateFromToken(String token) {
+//        return new Date((Long) getClaimsFromToken(token).get(CLAIM_KEY_CREATED));
+//    }
 
     public Boolean isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
 
-//    public Boolean isTokenValid(String token, Auth user) {
-//        final String username = getUsernameFromToken(token);
-//        return (username.equals(user.getUsername()) && !isTokenExpired(token));
-//    }
+    public Boolean isTokenValid(String token, Auth user) {
+        final String username = getUsernameFromToken(token);
+        return (username.equals(user.getUsername()) && !isTokenExpired(token));
+    }
 
     public Boolean isCreatedBeforeLastPasswordReset(Date created, Date lastPasswordReset) {
         return created.before(lastPasswordReset);
     }
 
-    public Boolean canTokenBeRefreshed(String token, Date lastPasswordReset) {
-        final Date created = getCreatedDateFromToken(token);
-        return (!isCreatedBeforeLastPasswordReset(created, lastPasswordReset) && !isTokenExpired(token));
-    }
+//    public Boolean canTokenBeRefreshed(String token, Date lastPasswordReset) {
+//        final Date created = getCreatedDateFromToken(token);
+//        return (!isCreatedBeforeLastPasswordReset(created, lastPasswordReset) && !isTokenExpired(token));
+//    }
 }

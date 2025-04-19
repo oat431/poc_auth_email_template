@@ -67,12 +67,16 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
 }
 
-hibernate {
-    enhancement {
-        enableAssociationManagement = true
-    }
-}
+//hibernate {
+//    enhancement {
+//        enableAssociationManagement = true
+//    }
+//}
 
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+//tasks.withType(JavaCompile) {
+//    options.compilerArgs += ["-Xlint:unchecked"]
+//}

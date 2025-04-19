@@ -1,6 +1,7 @@
 package panomete.poc.resemail.role.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -27,5 +28,6 @@ public class Role extends BaseEntity {
 
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
     @ToString.Exclude
+    @Builder.Default
     private List<Auth> auths = new ArrayList<>();
 }

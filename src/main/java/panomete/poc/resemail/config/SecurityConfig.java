@@ -59,7 +59,12 @@ public class SecurityConfig {
             "/webjars/**",
             "/favicon.ico",
             "/webjars/**",
-            "/actuator/**"
+            "/actuator/**",
+            "/api/v1/auth/sign-in"
+    };
+
+    private static final String[] AUTH_FEATURE = {
+            "/api/v1/auth/credentials",
     };
 
     @Bean
@@ -71,6 +76,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(FREE_AREA).permitAll()
+                        .requestMatchers(AUTH_FEATURE).hasRole("ADMIN")
                         .anyRequest().authenticated()
                 );
         http.authenticationProvider(authenticationProvider());
@@ -108,7 +114,7 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return authRepository::findByUsername;
+        return authRepository::findByUsernameWithRoles;
     }
 
     @Bean
