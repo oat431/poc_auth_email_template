@@ -19,15 +19,18 @@ import java.time.LocalDateTime;
 public class RefreshToken extends BaseEntity {
     public RefreshToken() {}
 
-    @Column(name = "token", unique = true, nullable = false)
+
+    @Column(nullable = false, unique = true)
     private String token;
 
-    @Column(name = "is_revoked")
-    private Boolean isRevoked;
+    @Column(name = "exp_at", nullable = false)
+    private LocalDateTime expiresAt;
 
-    @Column(name = "expired_date")
-    private LocalDateTime expDate;
+    @Column(name = "is_revoke")
+    private Boolean revoked;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    Auth auth;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auth_id", nullable = false)
+    @ToString.Exclude
+    private Auth auth;
 }

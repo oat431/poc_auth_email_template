@@ -2,7 +2,6 @@ package panomete.poc.resemail.security.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,43 +10,50 @@ import panomete.poc.resemail.role.entity.Role;
 import panomete.poc.resemail.token.entity.RefreshToken;
 import panomete.poc.resemail.user.entity.User;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Builder
 @Getter
 @Setter
 @Entity
-@SuperBuilder
 @Table(name = "tb_auth")
+@AllArgsConstructor
 public class Auth extends BaseEntity implements UserDetails {
     public Auth() {}
 
-    @Column(name = "username", unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private String username;
 
-    @Column(name = "password", nullable = false)
+    @Column(nullable = false)
     private String password;
-
-    @Column(name = "email", unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Builder.Default
-    @Column(name = "is_verified")
-    private Boolean isVerified = false;
+    @Column(name = "is_active")
+    private boolean enabled;
 
-    @Column(name = "is_enabled")
-    private Boolean isEnabled;
+    @Column(name = "is_verified", nullable = false)
+    private boolean verified;   // <-- primitive + renamed
 
     @OneToOne(mappedBy = "auth")
-    User user;
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    List<Role> roles;
-
-    @OneToMany(mappedBy="auth")
     @ToString.Exclude
-    List<RefreshToken> refreshTokens;
+    private User user;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "tb_auth_role",
+            joinColumns        = @JoinColumn(name = "auth_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @ToString.Exclude
+    private List<Role> roles = new ArrayList<>();
+
+    @OneToMany(mappedBy = "auth", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<RefreshToken> refreshTokens = new ArrayList<>();;
+
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -79,6 +85,6 @@ public class Auth extends BaseEntity implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return isEnabled;
+        return enabled;
     }
 }

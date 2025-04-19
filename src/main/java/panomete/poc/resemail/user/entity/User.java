@@ -15,14 +15,16 @@ import panomete.poc.resemail.security.entity.Auth;
 @SuperBuilder
 @Table(name = "tb_user")
 public class User extends BaseEntity {
-    public User() {}
+    public User(Auth auth) {}
 
-    @Column(name = "firstname", nullable = false, columnDefinition = "TEXT")
-    private String username;
+    @Column(nullable = false)
+    private String firstname;
 
-    @Column(name = "lastname", columnDefinition = "TEXT")
-    private String password;
+    @Column
+    private String lastname;
 
-    @OneToOne(cascade = CascadeType.ALL)
-    Auth auth;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auth_id", nullable = false)
+    @ToString.Exclude
+    private Auth auth;
 }

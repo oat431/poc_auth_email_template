@@ -8,23 +8,24 @@ import lombok.experimental.SuperBuilder;
 import panomete.poc.resemail.common.entity.BaseEntity;
 import panomete.poc.resemail.security.entity.Auth;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
-@ToString
 @Entity
 @SuperBuilder
 @Table(name = "tb_role")
 public class Role extends BaseEntity {
     public Role() {}
 
-    @Column(name = "name", nullable = false)
+    @Column(nullable = false)
     private String name;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
-    List<Auth> auths;
+    @ToString.Exclude
+    private List<Auth> auths = new ArrayList<>();
 }
