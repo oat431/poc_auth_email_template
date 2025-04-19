@@ -1,0 +1,62 @@
+server:
+  port: 8080
+
+logging:
+  level:
+    root: WARN
+    sql: ERROR
+    web: WARN
+    panomete.poc.resemail: INFO
+    org.springframework.web: INFO
+    org.hibernate: ERROR
+  pattern:
+    console: "%clr(%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd HH:mm:ss.SSS Z}}){magenta} |  %clr(${LOG_LEVEL_PATTERN:%-5p}) | %clr(%-40.40logger{39}){cyan} | %clr(%-25.25M){yellow} | %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
+
+spring:
+  application:
+    name: poc_auth_email_template
+  profiles:
+    active: dev
+  devtools:
+    livereload:
+      enabled: true
+      port: 8081
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/db_poc_resemail
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create
+    database: postgresql
+    open-in-view: false
+  output:
+    ansi:
+      enabled: always
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger
+    syntax-highlight:
+      activated: true
+      theme: monokai
+    try-it-out-enabled: true
+    tags-sorter: alpha
+    filter: true
+
+jwt:
+  secret: GQukpEjFQ17HHHSjbQgVF3Y2WTwGlI5aXyONj8IJyEVZJrNq5wrPDqC8HiRnIk3a
+  user:
+    expiration: 86400
+  admin:
+    expiration: 10800
+  refresh:
+    expiration: 604800
+  email:
+    expiration: 604800
